@@ -30,14 +30,7 @@ A microservice-based backend system built in Go that ingests, processes, stores,
 
 ### Project structure
 
-sportstream/
-├── api/ # REST API service
-├── poller/ # Feed ingestion
-├── worker/ # Message processor
-├── docker-compose.yaml
-├── Makefile
-└── docs/
-└── swagger # API documentation
+![Structure](./structure.png)
 
 ## 🕓 Scheduled Article Polling Job
 
