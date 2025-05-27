@@ -1,0 +1,11 @@
+{
+    "ack_policy": "explicit",
+    "ack_wait": 30000000000,
+    "deliver_policy": "new",
+    "durable_name": "sportstream_docker_updated",
+    "filter_subject": "SPORTSTREAM.DOCKER.status.updated",
+    "max_ack_pending": 1000,
+    "max_deliver": -1,
+    "max_waiting": 512,
+    "replay_policy": "instant"
+}

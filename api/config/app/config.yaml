@@ -1,0 +1,24 @@
+ENVIRONMENT:
+  NAME: local
+NATS:
+  RECONNECT_WAIT: "10s"
+  CONSUMERS:
+    ARTICLES:
+      UPDATE:
+        CONSUMER_NAME: "sportstream_docker_updated"
+        CONSUMER_GROUP: "sportstream_docker"
+        SUBJECT: "SPORTSTREAM.status.updated"
+        STREAM: "SPORTSTREAM"
+HTTP:
+  HOST_ADDRESS: ":8080"
+  READ_TIMEOUT: "10s"
+  WRITE_TIMEOUT: "10s"
+  BASE_PATH: "sportstream"
+MESSAGE_QUEUE_PROCESSOR:
+  MAX_RETRIES: 5
+  LIMIT: 100
+  WAIT: "10s"
+MESSAGE_QUEUE:
+  RECONNECTION_WAIT: "10s"
+
+
