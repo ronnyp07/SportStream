@@ -1,0 +1,24 @@
+ENVIRONMENT:
+  NAME: local
+NATS:
+  PUBLISHERS:
+    ARTICLES:
+      UPDATE:
+        SUBJECT: "ARTICLES.status.updated"
+MESSAGE_QUEUE_PROCESSOR:
+  MAX_RETRIES: 5
+  LIMIT: 100
+  WAIT: "10s"
+MESSAGE_QUEUE:
+  RECONNECTION_WAIT: "10s"
+JOBS:
+  POLLER:
+    ENABLED: TRUE
+    TYPE: "CRONJOB"
+    INTERVAL: "*/1 * * * *"
+    USESECONDS: FALSE
+    EXTERNALADDRESS: "https://content-ecb.pulselive.com/content/ecb/text/EN"
+    RETRY:
+      MAXATTEMPTS: 6
+      DURATION: "2s"
+

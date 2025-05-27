@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  nats:
+    container_name: sportstream-nats
+    image: nats:2.10.2-alpine
+    ports:
+      - "4222:4222"  # Client connections
+      - "8222:8222"  # Monitoring
+    command: -m 8222 -js
+    networks:
+      - local
+
+  nats-box:
+    container_name: sportstream-nats-box
+    image: natsio/nats-box:0.14.2
+    environment:
+      NATS_URL: nats://nats:4222  # Connect using service name
+    entrypoint: /bin/sh -c "chmod +x /root/nats_setup.sh && /root/nats_setup.sh && tail -F"
+    depends_on:
+      - nats
+    volumes:
+      - ./volumes/nats:/root/  # Mount the script directly
+    networks:
+      - local
+
+networks:
+  local:

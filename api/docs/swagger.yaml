@@ -1,0 +1,169 @@
+basePath: /api/v1
+definitions:
+  models.Article:
+    properties:
+      body:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      leadMedia:
+        $ref: '#/definitions/models.Media'
+      summary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
+      title:
+        type: string
+    type: object
+  models.Media:
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  models.PageInfo:
+    properties:
+      numEntries:
+        type: integer
+      numPages:
+        type: integer
+      page:
+        type: integer
+      pageSize:
+        type: integer
+    type: object
+  models.PaginatedArticles:
+    properties:
+      content:
+        items:
+          $ref: '#/definitions/models.Article'
+        type: array
+      pageInfo:
+        $ref: '#/definitions/models.PageInfo'
+    type: object
+  models.Tag:
+    properties:
+      id:
+        type: integer
+      label:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server for SportStream.
+  termsOfService: http://swagger.io/terms/
+  title: SportStream API
+  version: "1.0"
+paths:
+  /articles:
+    get:
+      consumes:
+      - application/json
+      description: Get articles with pagination support
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedArticles'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get paginated articles
+      tags:
+      - articles
+  /articles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get article by internal auto-incremented ID
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Article'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get article by internal ID
+      tags:
+      - articles
+  /articles/external/{externalID}:
+    get:
+      consumes:
+      - application/json
+      description: Get article by external system ID
+      parameters:
+      - description: External Article ID
+        in: path
+        name: externalID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Article'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get article by external ID
+      tags:
+      - articles
+swagger: "2.0"

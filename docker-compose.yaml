@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  nats:
+    container_name: sportstream-nats
+    image: nats:2.10.2-alpine
+    ports:
+      - "4222:4222"  # Client connections
+      - "8222:8222"  # Monitoring
+    command: -m 8222 -js
+    networks:
+      - local
+
+  nats-box:
+    container_name: sportstream-nats-box
+    image: natsio/nats-box:0.14.2
+    environment:
+      NATS_URL: nats://nats:4222  # Connect using service name
+    entrypoint: /bin/sh -c "chmod +x /root/nats_setup.sh && /root/nats_setup.sh && tail -F"
+    depends_on:
+      - nats
+    volumes:
+      - ./poller/build/docker/volumes/nats:/root/  # Mount the script directly
+    networks:
+      - local
+  
+  poller:
+    container_name: poller-service
+    build:
+      context: ./poller
+      dockerfile: Dockerfile
+    env_file:
+      - ./poller/infra.env
+    depends_on:
+      - nats
+    ports:
+      - "80:80"
+    networks:
+      - local
+  
+  worker:
+    container_name: worker-service
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    env_file:
+      - ./worker/infra.env
+    depends_on:
+      - nats
+      - mongodb
+      - mongo-express
+    ports:
+      - "3001:80"
+    networks:
+      - local
+  api:
+    container_name: api-service
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/infra.env
+    depends_on:
+      - nats
+      - mongodb
+      - mongo-express
+    ports:
+      - "8080:8080"
+    networks:
+      - local
+  
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: articleuser
+      MONGO_INITDB_ROOT_PASSWORD: articlepass
+      MONGO_INITDB_DATABASE: articledb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    command: [--auth]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+    networks:
+      - local
+
+  mongo-express:
+    image: mongo-express:1.0
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: articleuser
+      ME_CONFIG_MONGODB_ADMINPASSWORD: articlepass
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_MONGODB_URL: mongodb://articleuser:articlepass@mongodb:27017/
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - local
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - worker
+    networks:
+      - local
+
+  grafana:
+    image: grafana/grafana:latest
+    user: "472:472"
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning  # Add provisioning
+    environment:
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - prometheus
+    networks:
+      - local
+
+volumes:
+  mongodb_data:
+  grafana_data:
+
+networks:
+  local:
